@@ -25,14 +25,15 @@ class ObjTest(unittest.TestCase):
         garbage collector in a different thread.
         """
         class CyclicChildObject(ObjectType):
-            def __init__(self, parent):
+            def __init__(self):
+                parent = CyclicObject()
                 super(CyclicChildObject, self).__init__(parent)
                 self._parent = parent
 
         class CyclicObject(ObjectType):
             def __init__(self):
                 super(CyclicObject, self).__init__()
-                CyclicChildObject(self)
+                self._this = self
 
         # turn off automatic garbage collection, to be able to trigger it
         # at the 'right' time
@@ -43,7 +44,7 @@ class ObjTest(unittest.TestCase):
         # first proof that the wizard is only destructed by the garbage
         # collector
         #
-        cycle = CyclicObject()
+        cycle = CyclicChildObject()
         self.assertTrue(alive())
         del cycle
         if not hasattr(sys, "pypy_version_info"):
